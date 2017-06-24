@@ -21,19 +21,29 @@ export default class App extends Component {
       .configure(hooks())
       .configure(rest('http://localhost:3000').superagent(superagent))
       .configure(authentication({ storage: AsyncStorage }));
+    this.authenticate();
+    this.user = null;
+  }
 
+  authenticate = token => {
+    const options = token ? { strategy: 'jwt', accessToken: token } : undefined;
     this.app
-      .authenticate()
-      .then(({ accessToken }) => feathers.passport.verifyJWT(accessToken))
-      .then(payload => feathers.service('users').get(payload.userId))
+      .authenticate(options)
+      .then(resp => {
+        return this.app.passport.verifyJWT(resp.accessToken);
+      })
+      .then(payload => {
+        return this.app.service('users').get(payload.userId);
+      })
       .then(user => {
-        feathers.set('user', user);
+        this.user = user;
         this.setState({ isAuthenticated: true, isInitialized: true });
       })
       .catch(this.logout);
-  }
+  };
 
   logout = () => {
+    this.app.logout();
     this.setState({ isAuthenticated: false, isInitialized: true });
   };
 
@@ -42,6 +52,8 @@ export default class App extends Component {
     if (!isInitialized) {
       return <Loading />;
     }
-    return isAuthenticated ? <ProfileScene /> : <LoginScene />;
+    return isAuthenticated
+      ? <ProfileScene user={this.user} />
+      : <LoginScene authenticate={this.authenticate} />;
   }
 }

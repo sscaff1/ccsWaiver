@@ -1,19 +1,30 @@
 import React, { Component } from 'react';
-import { AsyncStorage } from 'react-native';
+import { AsyncStorage, Alert } from 'react-native';
+import ImagePicker from 'react-native-image-picker';
 import feathers from 'feathers/client';
 import hooks from 'feathers-hooks';
 import authentication from 'feathers-authentication-client';
 import rest from 'feathers-rest/client';
 import superagent from 'superagent';
+import promisify from 'es6-promisify';
 import Loading from './components/Loading';
 import LoginScene from './scenes/LoginScene';
 import ProfileScene from './scenes/ProfileScene';
+
+const getItem = promisify(AsyncStorage.getItem);
+const setItem = promisify(AsyncStorage.setItem);
 
 export default class App extends Component {
   state = {
     isAuthenticated: false,
     isInitialized: false,
-    gameCard: null,
+    name: undefined,
+    photo: undefined,
+    email: undefined,
+    phone: undefined,
+    gender: undefined,
+    teams: undefined,
+    card: null,
   };
 
   componentWillMount() {
@@ -21,13 +32,20 @@ export default class App extends Component {
       .configure(hooks())
       .configure(rest('http://localhost:3000').superagent(superagent))
       .configure(authentication({ storage: AsyncStorage }));
-    this.authenticate();
-    this.user = null;
+    const promises = [this.authenticate(), getItem('playerCard')];
+    Promise.all(promises).then(([user, playerCard]) => {
+      if (playerCard) {
+        const card = JSON.parse(playerCard);
+        const { teams } = card;
+        card.teams = teams && teams.length > 0 ? teams.join(', ') : undefined;
+        this.setState({ card });
+      }
+    });
   }
 
   authenticate = token => {
     const options = token ? { strategy: 'jwt', accessToken: token } : undefined;
-    this.app
+    return this.app
       .authenticate(options)
       .then(resp => {
         return this.app.passport.verifyJWT(resp.accessToken);
@@ -36,8 +54,20 @@ export default class App extends Component {
         return this.app.service('users').get(payload.userId);
       })
       .then(user => {
-        this.user = user;
-        this.setState({ isAuthenticated: true, isInitialized: true });
+        const { name, photo, email, phone, gender, teams } = user;
+        const teamString = teams && teams.length > 0
+          ? teams.join(', ')
+          : undefined;
+        this.setState({
+          isAuthenticated: true,
+          isInitialized: true,
+          name,
+          photo,
+          email,
+          phone,
+          gender,
+          teams: teamString,
+        });
       })
       .catch(this.logout);
   };
@@ -47,13 +77,61 @@ export default class App extends Component {
     this.setState({ isAuthenticated: false, isInitialized: true });
   };
 
+  agree = () => {
+    const { isAuthenticated, isInitialized, card, ...user } = this.state;
+    const teams = user.teams.split(',').map(v => v.trim());
+    user.teams = teams;
+    setItem('playerCard', JSON.stringify(user));
+  };
+
+  selectPhoto = () => {
+    const options = {
+      quality: 0.8,
+      maxWidth: 600,
+      maxHeight: 600,
+      storageOptions: {
+        skipBackup: true,
+      },
+    };
+
+    ImagePicker.showImagePicker(options, response => {
+      console.log('Response = ', response);
+      if (response.didCancel) {
+        console.log('User cancelled photo picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else {
+        this.setState({
+          photo: `data:image/jpeg;base64,${response.data}`,
+        });
+      }
+    });
+  };
+
+  onChangeInput = (field, value) => {
+    this.setState({ [field]: value });
+  };
+
   render() {
-    const { isAuthenticated, isInitialized } = this.state;
+    const { isAuthenticated, isInitialized, card, ...user } = this.state;
     if (!isInitialized) {
       return <Loading />;
     }
     return isAuthenticated
-      ? <ProfileScene user={this.user} />
-      : <LoginScene authenticate={this.authenticate} />;
+      ? <ProfileScene
+          user={user}
+          logout={() =>
+            Alert.alert('Logout', 'Are you sure you want to logout?', [
+              { text: 'Cancel', onPress: () => null },
+              { text: 'OK', onPress: this.logout },
+            ])}
+          agree={this.agree}
+          selectPhoto={this.selectPhoto}
+          onChangeInput={this.onChangeInput}
+          card={card}
+        />
+      : <LoginScene authenticate={this.authenticate} card={card} />;
   }
 }

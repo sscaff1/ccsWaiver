@@ -41,6 +41,7 @@ export default class App extends Component {
         this.setState({ card });
       }
     });
+    this.userId = null;
   }
 
   authenticate = token => {
@@ -54,7 +55,8 @@ export default class App extends Component {
         return this.app.service('users').get(payload.userId);
       })
       .then(user => {
-        const { name, photo, email, phone, gender, teams } = user;
+        const { _id, name, photo, email, phone, gender, teams } = user;
+        this.userId = _id;
         const teamString = teams && teams.length > 0
           ? teams.join(', ')
           : undefined;
@@ -77,10 +79,59 @@ export default class App extends Component {
     this.setState({ isAuthenticated: false, isInitialized: true });
   };
 
+  validate({ name, photo, email, phone, gender, teams }) {
+    const errorMessages = [];
+    if (!name) {
+      errorMessages.push('You must supply a name');
+    }
+    if (!photo) {
+      errorMessages.push('You must supply a photo');
+    }
+    if (!email) {
+      errorMessages.push('You must supply an email');
+    }
+    if (!phone) {
+      errorMessages.push('You must supply a phone number');
+    }
+    if (!gender) {
+      errorMessages.push('You must indicate your gender');
+    }
+    if (!teams) {
+      errorMessages.push('You must indicate which teams you play on');
+    }
+    return errorMessages;
+  }
+
   agree = () => {
     const { isAuthenticated, isInitialized, card, ...user } = this.state;
+    const errorMessages = this.validate(user);
+    if (errorMessages.length) {
+      return Alert.alert('Error', errorMessages.join('\n'));
+    }
     const teams = user.teams.split(',').map(v => v.trim());
     user.teams = teams;
+    this.setState({ isInitialized: false }, () => {
+      this.app
+        .service('users')
+        .update(this.userId, user)
+        .then(user => {
+          const { name, photo, email, phone, gender, teams } = user;
+          const teamString = teams && teams.length > 0
+            ? teams.join(', ')
+            : undefined;
+          this.setState({
+            isAuthenticated: true,
+            isInitialized: true,
+            name,
+            photo,
+            email,
+            phone,
+            gender,
+            teams: teamString,
+          });
+        })
+        .catch(err => console.log(err));
+    });
     setItem('playerCard', JSON.stringify(user));
   };
 

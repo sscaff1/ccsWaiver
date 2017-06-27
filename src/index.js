@@ -7,6 +7,7 @@ import authentication from 'feathers-authentication-client';
 import rest from 'feathers-rest/client';
 import superagent from 'superagent';
 import promisify from 'es6-promisify';
+import { isMobilePhone, isEmail } from 'validator';
 import Loading from './components/Loading';
 import LoginScene from './scenes/LoginScene';
 import ProfileScene from './scenes/ProfileScene';
@@ -34,10 +35,9 @@ export default class App extends Component {
       .configure(authentication({ storage: AsyncStorage }));
     const promises = [this.authenticate(), getItem('playerCard')];
     Promise.all(promises).then(([user, playerCard]) => {
+      console.log(playerCard);
       if (playerCard) {
         const card = JSON.parse(playerCard);
-        const { teams } = card;
-        card.teams = teams && teams.length > 0 ? teams.join(', ') : undefined;
         this.setState({ card });
       }
     });
@@ -87,13 +87,13 @@ export default class App extends Component {
     if (!photo) {
       errorMessages.push('You must supply a photo');
     }
-    if (!email) {
-      errorMessages.push('You must supply an email');
+    if (!email || !isEmail(email)) {
+      errorMessages.push('You must supply a valid email');
     }
     if (!phone) {
       errorMessages.push('You must supply a phone number');
     }
-    if (!gender) {
+    if (!gender || (gender !== 'male' && gender !== 'female')) {
       errorMessages.push('You must indicate your gender');
     }
     if (!teams) {
@@ -108,14 +108,18 @@ export default class App extends Component {
     if (errorMessages.length) {
       return Alert.alert('Error', errorMessages.join('\n'));
     }
+    const playerCard = Object.assign({}, user);
     const teams = user.teams.split(',').map(v => v.trim());
     user.teams = teams;
-    this.setState({ isInitialized: false }, () => {
-      this.app
-        .service('users')
-        .update(this.userId, user)
-        .then(user => {
-          const { name, photo, email, phone, gender, teams } = user;
+
+    this.setState({ isInitialized: false, card: playerCard }, () => {
+      const promises = [
+        setItem('playerCard', JSON.stringify(playerCard)),
+        this.app.service('users').patch(this.userId, user),
+      ];
+      Promise.all(promises)
+        .then(([updatedPlayerCard, newUser]) => {
+          const { name, photo, email, phone, gender, teams } = newUser;
           const teamString = teams && teams.length > 0
             ? teams.join(', ')
             : undefined;
@@ -132,7 +136,6 @@ export default class App extends Component {
         })
         .catch(err => console.log(err));
     });
-    setItem('playerCard', JSON.stringify(user));
   };
 
   selectPhoto = () => {

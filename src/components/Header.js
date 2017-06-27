@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
         elevation: 1,
       },
     }),
-    backgroundColor: '#FFF',
+    backgroundColor: '#FD7723',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -52,9 +52,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: WINDOW_WIDTH / 26,
     alignSelf: 'center',
+    color: '#FFF',
   },
   icon: {
     fontSize: 25,
+    color: '#FFF',
   },
   side: {
     width: WINDOW_WIDTH / 10,

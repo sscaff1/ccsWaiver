@@ -79,11 +79,13 @@ export default class ProfileScene extends Component {
             placeholder="Email"
             value={user.email}
             onChangeText={text => onChangeInput('email', text)}
+            keyboardType="email-address"
           />
           <Input
             placeholder="Phone Number"
             value={user.phone}
             onChangeText={text => onChangeInput('phone', text)}
+            keyboardType="phone-pad"
           />
           <View style={styles.input}>
             <SegmentedControls

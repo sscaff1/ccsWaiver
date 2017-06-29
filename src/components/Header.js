@@ -50,7 +50,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    fontSize: WINDOW_WIDTH / 26,
+    fontSize: 16,
+    fontWeight: 'bold',
     alignSelf: 'center',
     color: '#FFF',
   },

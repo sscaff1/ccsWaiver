@@ -6,14 +6,33 @@ import hooks from 'feathers-hooks';
 import authentication from 'feathers-authentication-client';
 import rest from 'feathers-rest/client';
 import superagent from 'superagent';
-import promisify from 'es6-promisify';
 import { isMobilePhone, isEmail } from 'validator';
+import { ENDPOINT } from './constants';
 import Loading from './components/Loading';
 import LoginScene from './scenes/LoginScene';
 import ProfileScene from './scenes/ProfileScene';
 
-const getItem = promisify(AsyncStorage.getItem);
-const setItem = promisify(AsyncStorage.setItem);
+const getItem = key =>
+  new Promise((resolve, reject) => {
+    AsyncStorage.getItem(key, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+
+const setItem = (key, toSet) =>
+  new Promise((resolve, reject) => {
+    AsyncStorage.setItem(key, toSet, err => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(null);
+      }
+    });
+  });
 
 export default class App extends Component {
   state = {
@@ -31,11 +50,10 @@ export default class App extends Component {
   componentWillMount() {
     this.app = feathers()
       .configure(hooks())
-      .configure(rest('http://localhost:3000').superagent(superagent))
+      .configure(rest(ENDPOINT).superagent(superagent))
       .configure(authentication({ storage: AsyncStorage }));
     const promises = [this.authenticate(), getItem('playerCard')];
     Promise.all(promises).then(([user, playerCard]) => {
-      console.log(playerCard);
       if (playerCard) {
         const card = JSON.parse(playerCard);
         this.setState({ card });
@@ -45,6 +63,7 @@ export default class App extends Component {
   }
 
   authenticate = token => {
+    console.log(token);
     const options = token ? { strategy: 'jwt', accessToken: token } : undefined;
     return this.app
       .authenticate(options)
@@ -74,7 +93,8 @@ export default class App extends Component {
       .catch(this.logout);
   };
 
-  logout = () => {
+  logout = err => {
+    console.log(err);
     this.app.logout();
     this.setState({ isAuthenticated: false, isInitialized: true });
   };

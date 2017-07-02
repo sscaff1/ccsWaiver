@@ -6,9 +6,11 @@ import {
   ScrollView,
   StyleSheet,
   Image,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { SegmentedControls } from 'react-native-radio-buttons';
+import DatePicker from 'react-native-datepicker';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import Header from '../components/Header';
@@ -71,9 +73,14 @@ export default class ProfileScene extends Component {
           {user.photo &&
             <Image style={styles.image} source={{ uri: user.photo }} />}
           <Input
-            placeholder="Name"
-            value={user.name}
-            onChangeText={text => onChangeInput('name', text)}
+            placeholder="First Name"
+            value={user.firstName}
+            onChangeText={text => onChangeInput('firstName', text)}
+          />
+          <Input
+            placeholder="Last Name"
+            value={user.lastName}
+            onChangeText={text => onChangeInput('lastName', text)}
           />
           <Input
             placeholder="Email"
@@ -95,6 +102,18 @@ export default class ProfileScene extends Component {
               onSelection={option => onChangeInput('gender', option.value)}
             />
           </View>
+          <DatePicker
+            style={styles.input}
+            customStyles={{
+              dateInput: styles.dob,
+            }}
+            placeholder="Your Birth Date"
+            date={user.dob}
+            confirmBtnText="Confirm"
+            cancelBtnText="Cancel"
+            showIcon={false}
+            onDateChange={date => onChangeInput('dob', date)}
+          />
           <Input
             placeholder="Teams you play on"
             value={user.teams}
@@ -142,7 +161,7 @@ const styles = StyleSheet.create({
   input: {
     width: '80%',
     marginTop: 5,
-    marginBottom: 10,
+    marginBottom: 15,
   },
   helperText: {
     fontSize: 10,
@@ -175,5 +194,27 @@ const styles = StyleSheet.create({
   marginBottom: {
     marginBottom: 10,
     fontSize: 14,
+  },
+  dob: {
+    height: 50,
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    alignSelf: 'center',
+    marginTop: 5,
+    marginBottom: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    ...Platform.select({
+      ios: {
+        shadowRadius: 5,
+        shadowOffset: { width: 3, height: 3 },
+        shadowColor: '#000',
+        shadowOpacity: 0.8,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
   },
 });

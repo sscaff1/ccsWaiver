@@ -1,12 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Modal, View, Text, Image, StyleSheet } from 'react-native';
+import { format, differenceInYears } from 'date-fns';
 import { WINDOW_WIDTH } from '../constants';
 import Header from './Header';
 
 const LOGO = require('../logo.jpg');
 
 export default function PlayerCard({ card, visible, closeCard }) {
+  const age = differenceInYears(new Date(), card.dob);
   return (
     <Modal animationType="slide" visible={visible} onRequestClose={closeCard}>
       <View style={styles.container}>
@@ -15,13 +17,14 @@ export default function PlayerCard({ card, visible, closeCard }) {
           <View style={styles.row}>
             <View style={styles.container}>
               <Image source={LOGO} style={styles.logo} />
+              {age >= 30 && <Text style={styles.approved}>Over 30</Text>}
               <Text style={styles.approved}>Approved Player</Text>
             </View>
             <Image source={{ uri: card.photo }} style={styles.pic} />
           </View>
           <Text style={styles.text}>
             <Text style={styles.label}>Name: </Text>
-            {card.name}
+            {`${card.firstName} ${card.lastName}`}
           </Text>
           <Text style={styles.text}>
             <Text style={styles.label}>Gender: </Text>
@@ -34,6 +37,14 @@ export default function PlayerCard({ card, visible, closeCard }) {
           <Text style={styles.text}>
             <Text style={styles.label}>Phone: </Text>
             {card.phone}
+          </Text>
+          <Text style={styles.text}>
+            <Text style={styles.label}>Birth Date: </Text>
+            {format(card.dob, 'MM/DD/YYYY')}
+          </Text>
+          <Text style={styles.text}>
+            <Text style={styles.label}>Age: </Text>
+            {age}
           </Text>
           <Text style={styles.text}>
             <Text style={styles.label}>Teams: </Text>

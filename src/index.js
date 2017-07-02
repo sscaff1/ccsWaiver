@@ -38,11 +38,13 @@ export default class App extends Component {
   state = {
     isAuthenticated: false,
     isInitialized: false,
-    name: undefined,
+    firstName: undefined,
+    lastName: undefined,
     photo: undefined,
     email: undefined,
     phone: undefined,
     gender: undefined,
+    dob: undefined,
     teams: undefined,
     card: null,
   };
@@ -74,7 +76,17 @@ export default class App extends Component {
         return this.app.service('users').get(payload.userId);
       })
       .then(user => {
-        const { _id, name, photo, email, phone, gender, teams } = user;
+        const {
+          _id,
+          firstName,
+          lastName,
+          photo,
+          email,
+          phone,
+          gender,
+          dob,
+          teams,
+        } = user;
         this.userId = _id;
         const teamString = teams && teams.length > 0
           ? teams.join(', ')
@@ -82,11 +94,13 @@ export default class App extends Component {
         this.setState({
           isAuthenticated: true,
           isInitialized: true,
-          name,
+          firstName,
+          lastName,
           photo,
           email,
           phone,
           gender,
+          dob,
           teams: teamString,
         });
       })
@@ -99,10 +113,13 @@ export default class App extends Component {
     this.setState({ isAuthenticated: false, isInitialized: true });
   };
 
-  validate({ name, photo, email, phone, gender, teams }) {
+  validate({ firstName, lastName, photo, email, phone, gender, dob, teams }) {
     const errorMessages = [];
-    if (!name) {
-      errorMessages.push('You must supply a name');
+    if (!firstName) {
+      errorMessages.push('You must supply your first name');
+    }
+    if (!lastName) {
+      errorMessages.push('You must supply your last name');
     }
     if (!photo) {
       errorMessages.push('You must supply a photo');
@@ -115,6 +132,9 @@ export default class App extends Component {
     }
     if (!gender || (gender !== 'male' && gender !== 'female')) {
       errorMessages.push('You must indicate your gender');
+    }
+    if (!dob) {
+      errorMessages.push('You must supply your birth date');
     }
     if (!teams) {
       errorMessages.push('You must indicate which teams you play on');
@@ -139,18 +159,29 @@ export default class App extends Component {
       ];
       Promise.all(promises)
         .then(([updatedPlayerCard, newUser]) => {
-          const { name, photo, email, phone, gender, teams } = newUser;
+          const {
+            firstName,
+            lastName,
+            photo,
+            email,
+            phone,
+            gender,
+            dob,
+            teams,
+          } = newUser;
           const teamString = teams && teams.length > 0
             ? teams.join(', ')
             : undefined;
           this.setState({
             isAuthenticated: true,
             isInitialized: true,
-            name,
+            firstName,
+            lastName,
             photo,
             email,
             phone,
             gender,
+            dob,
             teams: teamString,
           });
         })

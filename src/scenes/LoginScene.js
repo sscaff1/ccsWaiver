@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import { PropTypes } from 'prop-types';
-import { StyleSheet, View, Text, WebView, Modal, Image } from 'react-native';
+import { StyleSheet, View, Text, WebView, Image } from 'react-native';
 import CookieManager from 'react-native-cookies';
+import Loading from '../components/Loading';
 import Header from '../components/Header';
 import Loading from '../components/Loading';
 import Button from '../components/Button';
+import Modal from '../components/Modal';
 import PlayerCard from '../components/PlayerCard';
 import { ENDPOINT } from '../constants';
 const LOGO = require('../logo.jpg');
@@ -13,12 +15,16 @@ export default class LoginScene extends Component {
   static propTypes = {
     authenticate: PropTypes.func.isRequired,
     card: PropTypes.object,
+    onShowDeals: PropTypes.func.isRequired,
+    dealsLoading: PropTypes.bool.isRequired,
+    deals: PropTypes.array.isRequired,
   };
 
   state = {
     authUrl: '',
     webViewVisible: false,
     cardVisible: false,
+    dealsVisible: false,
   };
 
   setAuthUrl = () => {
@@ -41,24 +47,37 @@ export default class LoginScene extends Component {
     const { webViewVisible } = this.state;
     return (
       <Modal
-        animationType="slide"
         visible={webViewVisible}
         onRequestClose={() => this.setState({ webViewVisible: false })}
+        title="Facebook Login"
       >
-        <View style={styles.container}>
-          <Header
-            title="Facebook Login"
-            icon="close"
-            iconAction={() => this.setState({ webViewVisible: false })}
-          />
-          <WebView
-            startInLoadingState
-            onNavigationStateChange={this.handleWebViewChange}
-            source={{ uri: this.state.authUrl }}
-            renderLoading={() => <Loading />}
-          />
-        </View>
+        <WebView
+          startInLoadingState
+          onNavigationStateChange={this.handleWebViewChange}
+          source={{ uri: this.state.authUrl }}
+          renderLoading={() => <Loading />}
+        />
       </Modal>
+    );
+  };
+
+  renderDeals = () => {
+    const { dealsLoading, deals } = this.props;
+    if (dealsLoading) {
+      return <Loading />;
+    }
+    if (deals.length < 1) {
+      return <Text style={styles.noDeals}>No Deals at this time</Text>;
+    }
+    return deals.map(deal =>
+      <View>
+        <Text style={styles.dealTitle}>
+          {deal.title}
+        </Text>
+        <Text style={styles.dealDesc}>
+          {deal.description}
+        </Text>
+      </View>
     );
   };
 
@@ -67,16 +86,27 @@ export default class LoginScene extends Component {
     return (
       <View style={styles.wrap}>
         <Image source={LOGO} style={styles.image} />
-        <Text style={styles.subheading}>
-          Waiver App
-        </Text>
+        <Text style={styles.subheading}>Waiver App</Text>
         <Button onPress={this.setAuthUrl} title="Login with Facebook" />
+        <Button
+          onPress={() => this.setState({ dealsVisible: true })}
+          title="View Deals"
+        />
         {this.props.card &&
           <Button
             onPress={() => this.setState({ cardVisible: true })}
             title="View Player Card"
           />}
         {this.renderWebView()}
+        return (
+        <Modal
+          visible={this.state.dealsVisible}
+          onRequestClose={() => this.setState({ dealsVisible: false })}
+          onShow={this.props.onShowDeals}
+          title="Deals"
+        >
+          {this.renderDeals()}
+        </Modal>
         {card &&
           <PlayerCard
             visible={this.state.cardVisible}

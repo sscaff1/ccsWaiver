@@ -47,6 +47,8 @@ export default class App extends Component {
     dob: undefined,
     teams: undefined,
     card: null,
+    dealsLoading: true,
+    deals: [],
   };
 
   componentWillMount() {
@@ -65,7 +67,6 @@ export default class App extends Component {
   }
 
   authenticate = token => {
-    console.log(token);
     const options = token ? { strategy: 'jwt', accessToken: token } : undefined;
     return this.app
       .authenticate(options)
@@ -88,9 +89,8 @@ export default class App extends Component {
           teams,
         } = user;
         this.userId = _id;
-        const teamString = teams && teams.length > 0
-          ? teams.join(', ')
-          : undefined;
+        const teamString =
+          teams && teams.length > 0 ? teams.join(', ') : undefined;
         this.setState({
           isAuthenticated: true,
           isInitialized: true,
@@ -108,7 +108,6 @@ export default class App extends Component {
   };
 
   logout = err => {
-    console.log(err);
     this.app.logout();
     this.setState({ isAuthenticated: false, isInitialized: true });
   };
@@ -142,6 +141,18 @@ export default class App extends Component {
     return errorMessages;
   }
 
+  onShowDeals = () => {
+    this.app
+      .service('deals')
+      .find()
+      .then(deals => {
+        this.setState({ dealsLoading: false, deals });
+      })
+      .catch(err =>
+        Alert.alert('Error', 'Trouble getting the deals! Please try again')
+      );
+  };
+
   agree = () => {
     const { isAuthenticated, isInitialized, card, ...user } = this.state;
     const errorMessages = this.validate(user);
@@ -169,9 +180,8 @@ export default class App extends Component {
             dob,
             teams,
           } = newUser;
-          const teamString = teams && teams.length > 0
-            ? teams.join(', ')
-            : undefined;
+          const teamString =
+            teams && teams.length > 0 ? teams.join(', ') : undefined;
           this.setState({
             isAuthenticated: true,
             isInitialized: true,
@@ -236,7 +246,16 @@ export default class App extends Component {
           selectPhoto={this.selectPhoto}
           onChangeInput={this.onChangeInput}
           card={card}
+          onShowDeals={this.onShowDeals}
+          dealsLoading={dealsLoading}
+          deals={deals}
         />
-      : <LoginScene authenticate={this.authenticate} card={card} />;
+      : <LoginScene
+          authenticate={this.authenticate}
+          card={card}
+          onShowDeals={this.onShowDeals}
+          dealsLoading={dealsLoading}
+          deals={deals}
+        />;
   }
 }

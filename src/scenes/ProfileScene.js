@@ -15,6 +15,9 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import Header from '../components/Header';
 import PlayerCard from '../components/PlayerCard';
+import Modal from '../components/Modal';
+import Loading from '../components/Loading';
+import Deal from '../components/Deal';
 import { AGREEMENT } from '../constants';
 
 const GENDER_OPTIONS = [
@@ -41,10 +44,29 @@ export default class ProfileScene extends Component {
     agree: PropTypes.func.isRequired,
     onChangeInput: PropTypes.func.isRequired,
     card: PropTypes.object,
+    onShowDeals: PropTypes.func.isRequired,
+    dealsLoading: PropTypes.bool.isRequired,
+    deals: PropTypes.array.isRequired,
   };
 
   state = {
     cardVisible: false,
+    dealsVisible: false,
+  };
+
+  renderDeals = () => {
+    const { dealsLoading, deals } = this.props;
+    if (dealsLoading) {
+      return <Loading />;
+    }
+    if (deals.length < 1) {
+      return <Text style={styles.noDeals}>No Deals at this time</Text>;
+    }
+    return (
+      <ScrollView contentContainerStyle={styles.deal}>
+        {deals.map(deal => <Deal key={deal._id} deal={deal} />)}
+      </ScrollView>
+    );
   };
 
   render() {
@@ -60,6 +82,10 @@ export default class ProfileScene extends Component {
       <View>
         <Header title="Player Info" icon="exit-to-app" iconAction={logout} />
         <ScrollView contentContainerStyle={styles.container}>
+          <Button
+            onPress={() => this.setState({ dealsVisible: true })}
+            title="View Deals"
+          />
           {card &&
             <Button
               title="View Current Player Card"
@@ -125,9 +151,7 @@ export default class ProfileScene extends Component {
             If you play on more than one team, please comma seperate your teams.
             Example: Team 1, Team 2
           </Text>
-          <Text style={styles.agreementText}>
-            Crescent City Soccer
-          </Text>
+          <Text style={styles.agreementText}>Crescent City Soccer</Text>
           <Text style={styles.agreementSub}>
             Disclaimer & Release of Liability & Assumption of Risk
           </Text>
@@ -141,6 +165,14 @@ export default class ProfileScene extends Component {
             By pressing I AGREE, you agree to the terms of the Agreement above
           </Text>
         </ScrollView>
+        <Modal
+          visible={this.state.dealsVisible}
+          onRequestClose={() => this.setState({ dealsVisible: false })}
+          onShow={this.props.onShowDeals}
+          title="Deals"
+        >
+          {this.renderDeals()}
+        </Modal>
         {card &&
           <PlayerCard
             visible={this.state.cardVisible}
@@ -216,5 +248,8 @@ const styles = StyleSheet.create({
         elevation: 1,
       },
     }),
+  },
+  deal: {
+    paddingTop: 20,
   },
 });

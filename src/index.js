@@ -51,7 +51,7 @@ export default class App extends Component {
     deals: [],
   };
 
-  componentWillMount() {
+  componentDidMount() {
     this.app = feathers()
       .configure(hooks())
       .configure(rest(ENDPOINT).superagent(superagent))
@@ -148,9 +148,10 @@ export default class App extends Component {
       .then(deals => {
         this.setState({ dealsLoading: false, deals });
       })
-      .catch(err =>
-        Alert.alert('Error', 'Trouble getting the deals! Please try again')
-      );
+      .catch(err => {
+        console.log(err);
+        Alert.alert('Error', 'Trouble getting the deals! Please try again');
+      });
   };
 
   agree = () => {
@@ -230,7 +231,14 @@ export default class App extends Component {
   };
 
   render() {
-    const { isAuthenticated, isInitialized, card, ...user } = this.state;
+    const {
+      isAuthenticated,
+      isInitialized,
+      card,
+      dealsLoading,
+      deals,
+      ...user
+    } = this.state;
     if (!isInitialized) {
       return <Loading />;
     }

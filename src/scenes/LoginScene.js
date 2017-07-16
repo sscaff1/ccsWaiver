@@ -1,13 +1,20 @@
 import React, { Component } from 'react';
 import { PropTypes } from 'prop-types';
-import { StyleSheet, View, Text, WebView, Image } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  WebView,
+  Image,
+  ScrollView,
+} from 'react-native';
 import CookieManager from 'react-native-cookies';
 import Loading from '../components/Loading';
 import Header from '../components/Header';
-import Loading from '../components/Loading';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
 import PlayerCard from '../components/PlayerCard';
+import Deal from '../components/Deal';
 import { ENDPOINT } from '../constants';
 const LOGO = require('../logo.jpg');
 
@@ -69,15 +76,10 @@ export default class LoginScene extends Component {
     if (deals.length < 1) {
       return <Text style={styles.noDeals}>No Deals at this time</Text>;
     }
-    return deals.map(deal =>
-      <View>
-        <Text style={styles.dealTitle}>
-          {deal.title}
-        </Text>
-        <Text style={styles.dealDesc}>
-          {deal.description}
-        </Text>
-      </View>
+    return (
+      <ScrollView contentContainerStyle={styles.deals}>
+        {deals.map(deal => <Deal key={deal._id} deal={deal} />)}
+      </ScrollView>
     );
   };
 
@@ -98,7 +100,6 @@ export default class LoginScene extends Component {
             title="View Player Card"
           />}
         {this.renderWebView()}
-        return (
         <Modal
           visible={this.state.dealsVisible}
           onRequestClose={() => this.setState({ dealsVisible: false })}
@@ -137,5 +138,8 @@ const styles = StyleSheet.create({
     flex: 1,
     aspectRatio: 1.5,
     resizeMode: 'contain',
+  },
+  deals: {
+    paddingTop: 20,
   },
 });

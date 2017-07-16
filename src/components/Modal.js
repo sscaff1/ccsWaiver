@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import { Header } from './Header';
+import Header from './Header';
 
 export default function AppModal({
   children,
@@ -13,7 +13,7 @@ export default function AppModal({
   return (
     <Modal
       animationType="slide"
-      visible={webViewVisible}
+      visible={visible}
       onRequestClose={onRequestClose}
       {...props}
     >
@@ -26,7 +26,10 @@ export default function AppModal({
 }
 
 AppModal.propTypes = {
-  children: PropTypes.element.isRequired,
+  children: PropTypes.oneOfType([
+    PropTypes.element.isRequired,
+    PropTypes.array.isRequired,
+  ]),
   title: PropTypes.string.isRequired,
   visible: PropTypes.bool.isRequired,
   onRequestClose: PropTypes.func.isRequired,

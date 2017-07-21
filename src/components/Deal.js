@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 
 export default function Deal({ deal }) {
@@ -8,6 +8,8 @@ export default function Deal({ deal }) {
       <Text style={styles.title}>
         {deal.title}
       </Text>
+      {deal.photo &&
+        <Image style={styles.image} source={{ uri: deal.photo }} />}
       <Text style={styles.desc}>
         {deal.description}
       </Text>
@@ -22,6 +24,13 @@ Deal.propTypes = {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 20,
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  image: {
+    height: 300,
+    resizeMode: 'contain',
+    width: '75%',
   },
   title: {
     fontSize: 24,

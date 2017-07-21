@@ -252,4 +252,9 @@ const styles = StyleSheet.create({
   deal: {
     paddingTop: 20,
   },
+  noDeals: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 });

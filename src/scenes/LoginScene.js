@@ -142,4 +142,9 @@ const styles = StyleSheet.create({
   deals: {
     paddingTop: 20,
   },
+  noDeals: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 });

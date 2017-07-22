@@ -78,7 +78,9 @@ export default class LoginScene extends Component {
     }
     return (
       <ScrollView contentContainerStyle={styles.deals}>
-        {deals.map(deal => <Deal key={deal._id} deal={deal} />)}
+        {deals.map((deal, i) =>
+          <Deal key={deal._id} deal={deal} isFirst={i === 0} />
+        )}
       </ScrollView>
     );
   };
@@ -101,6 +103,7 @@ export default class LoginScene extends Component {
           />}
         {this.renderWebView()}
         <Modal
+          startInLoadingState
           visible={this.state.dealsVisible}
           onRequestClose={() => this.setState({ dealsVisible: false })}
           onShow={this.props.onShowDeals}

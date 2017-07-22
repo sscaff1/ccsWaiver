@@ -64,7 +64,9 @@ export default class ProfileScene extends Component {
     }
     return (
       <ScrollView contentContainerStyle={styles.deal}>
-        {deals.map(deal => <Deal key={deal._id} deal={deal} />)}
+        {deals.map((deal, i) =>
+          <Deal key={deal._id} deal={deal} isFirst={i === 0} />
+        )}
       </ScrollView>
     );
   };
@@ -166,6 +168,7 @@ export default class ProfileScene extends Component {
           </Text>
         </ScrollView>
         <Modal
+          startInLoadingState
           visible={this.state.dealsVisible}
           onRequestClose={() => this.setState({ dealsVisible: false })}
           onShow={this.props.onShowDeals}

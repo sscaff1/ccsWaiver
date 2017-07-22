@@ -2,9 +2,14 @@ import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 
-export default function Deal({ deal }) {
+export default function Deal({ deal, isFirst }) {
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        !isFirst && { borderTopWidth: 1, paddingTop: 20 },
+      ]}
+    >
       <Text style={styles.title}>
         {deal.title}
       </Text>
@@ -28,9 +33,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   image: {
-    height: 300,
+    marginVertical: 5,
+    width: '90%',
+    aspectRatio: 2,
     resizeMode: 'contain',
-    width: '75%',
   },
   title: {
     fontSize: 24,
